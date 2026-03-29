@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design of Sewer Networks — Master Course</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;600;700&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0a0e1a;
+    --deep: #0d1528;
+    --blue: #1a3a6e;
+    --accent: #00c2ff;
+    --gold: #f5a623;
+    --white: #f0f4ff;
+    --muted: #8899bb;
+    --card-bg: #111827;
+    --border: rgba(0,194,255,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,194,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,194,255,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 6%;
+    background: rgba(10,14,26,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+  }
+
+  .logo span { color: var(--white); }
+
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    margin-left: 28px;
+  }
+
+  nav a:hover { color: var(--accent); }
+
+  .nav-cta {
+    background: var(--accent);
+    color: var(--navy) !important;
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-weight: 700 !important;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 120px 6% 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-pipe {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 48%;
+    background: linear-gradient(135deg, #0d1f42 0%, #0a0e1a 100%);
+    clip-path: polygon(12% 0, 100% 0, 100% 100%, 0% 100%);
+    z-index: 0;
+  }
+
+  .hero-pipe::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='28' fill='none' stroke='rgba(0,194,255,0.07)' stroke-width='2'/%3E%3Ccircle cx='40' cy='40' r='18' fill='none' stroke='rgba(0,194,255,0.05)' stroke-width='1.5'/%3E%3C/svg%3E") repeat;
+    opacity: 0.6;
+  }
+
+  /* Animated pipe cross-section */
+  .pipe-visual {
+    position: absolute;
+    right: 8%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 320px;
+    height: 320px;
+    z-index: 1;
+    animation: floatpipe 5s ease-in-out infinite;
+  }
+
+  @keyframes floatpipe {
+    0%,100% { transform: translateY(-50%) translateY(0); }
+    50% { transform: translateY(-50%) translateY(-18px); }
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 620px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,194,255,0.1);
+    border: 1px solid rgba(0,194,255,0.3);
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 2px;
+    margin-bottom: 28px;
+    animation: fadein 0.6s ease both;
+  }
+
+  .badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.5s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.4); }
+  }
+
+  h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    animation: fadein 0.8s 0.1s ease both;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--accent);
+    display: block;
+  }
+
+  .hero-sub {
+    font-size: 1.15rem;
+    color: var(--muted);
+    line-height: 1.7;
+    font-weight: 300;
+    max-width: 500px;
+    margin-bottom: 36px;
+    animation: fadein 0.8s 0.2s ease both;
+  }
+
+  .hero-sub strong { color: var(--white); font-weight: 600; }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    animation: fadein 0.8s 0.3s ease both;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--navy);
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 16px 36px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 30px rgba(0,194,255,0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 50px rgba(0,194,255,0.5);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--white);
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 16px 36px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    margin-top: 56px;
+    padding-top: 36px;
+    border-top: 1px solid var(--border);
+    animation: fadein 0.8s 0.4s ease both;
+  }
+
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TRUST BAR ── */
+  .trust-bar {
+    background: var(--deep);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 6%;
+    display: flex;
+    align-items: center;
+    gap: 48px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .trust-item svg { color: var(--accent); }
+
+  /* ── SECTION COMMON ── */
+  section {
+    padding: 100px 6%;
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(2rem, 4vw, 3.4rem);
+    font-weight: 900;
+    text-transform: uppercase;
+    line-height: 1;
+    margin-bottom: 20px;
+  }
+
+  .section-sub {
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.7;
+    max-width: 560px;
+    font-weight: 300;
+  }
+
+  /* ── WHAT YOU LEARN ── */
+  .learn-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2px;
+    margin-top: 56px;
+    border: 2px solid var(--border);
+  }
+
+  .learn-card {
+    background: var(--card-bg);
+    padding: 32px 28px;
+    border: 1px solid var(--border);
+    transition: background 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .learn-card:hover { background: #161e30; }
+
+  .learn-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 0;
+    background: var(--accent);
+    transition: height 0.3s ease;
+  }
+
+  .learn-card:hover::before { height: 100%; }
+
+  .card-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    color: rgba(0,194,255,0.12);
+    line-height: 1;
+    margin-bottom: 16px;
+    transition: color 0.25s;
+  }
+
+  .learn-card:hover .card-num { color: rgba(0,194,255,0.25); }
+
+  .card-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+
+  .card-desc {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.65;
+    font-weight: 300;
+  }
+
+  /* ── PRICING ── */
+  .pricing-section { background: var(--deep); }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 56px;
+    max-width: 860px;
+  }
+
+  .price-card {
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    padding: 40px 36px;
+    border-radius: 6px;
+    position: relative;
+  }
+
+  .price-card.featured {
+    border-color: var(--accent);
+    box-shadow: 0 0 60px rgba(0,194,255,0.1), inset 0 0 60px rgba(0,194,255,0.03);
+  }
+
+  .featured-tag {
+    position: absolute;
+    top: -1px; right: 28px;
+    background: var(--gold);
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 0 0 6px 6px;
+  }
+
+  .price-tier {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .price-amount {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .price-note {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
+
+  .price-features {
+    list-style: none;
+    margin-bottom: 32px;
+  }
+
+  .price-features li {
+    font-size: 0.9rem;
+    color: var(--muted);
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-weight: 300;
+  }
+
+  .price-features li::before {
+    content: '✓';
+    color: var(--accent);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .price-features li.dim { color: #4a5568; }
+  .price-features li.dim::before { content: '—'; color: #4a5568; }
+
+  /* ── FREE DOWNLOAD ── */
+  .download-bar {
+    background: linear-gradient(135deg, #0d2044 0%, #0a1830 100%);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 48px 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-top: 100px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .download-bar::before {
+    content: '';
+    position: absolute;
+    right: -40px; top: -40px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(0,194,255,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .dl-text h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+  }
+
+  .dl-text p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 300;
+    max-width: 400px;
+    line-height: 1.6;
+  }
+
+  .btn-gold {
+    background: var(--gold);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 15px 32px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    white-space: nowrap;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 24px rgba(245,166,35,0.25);
+    flex-shrink: 0;
+  }
+
+  .btn-gold:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 40px rgba(245,166,35,0.4);
+  }
+
+  /* ── YOUTUBE CTA ── */
+  .yt-section {
+    text-align: center;
+    background: var(--navy);
+    padding: 100px 6%;
+  }
+
+  .yt-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 28px 40px;
+    border-radius: 8px;
+    margin-top: 36px;
+    transition: border-color 0.2s, transform 0.2s;
+    text-decoration: none;
+    color: var(--white);
+  }
+
+  .yt-card:hover {
+    border-color: #ff4444;
+    transform: translateY(-3px);
+  }
+
+  .yt-icon {
+    width: 52px; height: 52px;
+    background: #ff0000;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .yt-icon svg { width: 24px; height: 24px; fill: white; }
+
+  .yt-text { text-align: left; }
+  .yt-text strong { display: block; font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+  .yt-text span { font-size: 0.82rem; color: var(--muted); }
+
+  /* ── CONTACT ── */
+  .contact-section {
+    background: var(--deep);
+    border-top: 1px solid var(--border);
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    margin-top: 56px;
+  }
+
+  .contact-info p {
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.8;
+    font-weight: 300;
+    margin-bottom: 28px;
+  }
+
+  .contact-links { display: flex; flex-direction: column; gap: 14px; }
+
+  .contact-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 400;
+    transition: color 0.2s;
+  }
+
+  .contact-link:hover { color: var(--accent); }
+
+  .contact-link-icon {
+    width: 36px; height: 36px;
+    background: rgba(0,194,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .contact-form { display: flex; flex-direction: column; gap: 16px; }
+
+  .contact-form input,
+  .contact-form textarea {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--white);
+    padding: 14px 18px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .contact-form input::placeholder,
+  .contact-form textarea::placeholder { color: #445577; }
+
+  .contact-form input:focus,
+  .contact-form textarea:focus { border-color: var(--accent); }
+
+  .contact-form textarea { resize: vertical; min-height: 130px; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: #060911;
+    border-top: 1px solid var(--border);
+    padding: 32px 6%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+  }
+
+  .footer-copy {
+    font-size: 0.78rem;
+    color: #3a4a66;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .hero-pipe { display: none; }
+    .pipe-visual { display: none; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .contact-grid { grid-template-columns: 1fr; }
+    .hero-stats { gap: 24px; flex-wrap: wrap; }
+    .download-bar { flex-direction: column; text-align: center; }
+    .dl-text p { max-width: 100%; }
+    nav .nav-links { display: none; }
+    footer { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">SEWER<span>NET</span></div>
+  <div class="nav-links">
+    <a href="#learn">Curriculum</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#youtube">YouTube</a>
+    <a href="#contact">Contact</a>
+    <a href="#pricing" class="nav-cta">Enroll Now</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-pipe"></div>
+
+  <!-- Animated SVG pipe cross-section -->
+  <svg class="pipe-visual" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="pipeglow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#00c2ff" stop-opacity="0.15"/>
+        <stop offset="100%" stop-color="#00c2ff" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <circle cx="160" cy="160" r="130" fill="url(#pipeglow)"/>
+    <circle cx="160" cy="160" r="130" fill="none" stroke="#00c2ff" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.4">
+      <animateTransform attributeName="transform" type="rotate" from="0 160 160" to="360 160 160" dur="30s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="160" cy="160" r="108" fill="none" stroke="#1a3a6e" stroke-width="24"/>
+    <circle cx="160" cy="160" r="108" fill="none" stroke="#00c2ff" stroke-width="2" opacity="0.6"/>
+    <circle cx="160" cy="160" r="96" fill="none" stroke="#0a0e1a" stroke-width="1"/>
+    <!-- water fill -->
+    <clipPath id="pipeclip">
+      <circle cx="160" cy="160" r="94"/>
+    </clipPath>
+    <g clip-path="url(#pipeclip)">
+      <rect x="66" y="210" width="188" height="50" fill="#0d2a5a" opacity="0.9"/>
+      <ellipse cx="160" cy="210" rx="94" ry="12" fill="#1a4080" opacity="0.7">
+        <animate attributeName="ry" values="10;14;10" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="210;207;210" dur="3s" repeatCount="indefinite"/>
+      </ellipse>
+    </g>
+    <!-- dimension lines -->
+    <line x1="160" y1="52" x2="160" y2="268" stroke="#00c2ff" stroke-width="0.5" opacity="0.3"/>
+    <line x1="52" y1="160" x2="268" y2="160" stroke="#00c2ff" stroke-width="0.5" opacity="0.3"/>
+    <!-- label -->
+    <text x="160" y="168" font-family="'Barlow Condensed',sans-serif" font-size="22" font-weight="900" fill="#00c2ff" text-anchor="middle" opacity="0.9">DN 600</text>
+    <text x="160" y="188" font-family="'Barlow',sans-serif" font-size="10" fill="#8899bb" text-anchor="middle" letter-spacing="2">SEWER PIPE</text>
+    <!-- tick marks -->
+    <line x1="160" y1="30" x2="160" y2="44" stroke="#00c2ff" stroke-width="1.5" opacity="0.5"/>
+    <line x1="160" y1="276" x2="160" y2="290" stroke="#00c2ff" stroke-width="1.5" opacity="0.5"/>
+    <line x1="30" y1="160" x2="44" y2="160" stroke="#00c2ff" stroke-width="1.5" opacity="0.5"/>
+    <line x1="276" y1="160" x2="290" y2="160" stroke="#00c2ff" stroke-width="1.5" opacity="0.5"/>
+  </svg>
+
+  <div class="hero-content">
+    <div class="badge">21-Lecture Masterclass</div>
+    <h1>Design of<br><em>Sewer Networks</em></h1>
+    <p class="hero-sub">
+      From <strong>first principles to full system design</strong> — master sewer hydraulics, CPHEEO standards, network layout, and Excel-based calculations used by real engineers.
+    </p>
+    <div class="hero-actions">
+      <a href="#pricing" class="btn-primary">Enroll Free →</a>
+      <a href="#learn" class="btn-secondary">View Curriculum</a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="stat-num">21</div>
+        <div class="stat-label">Lectures</div>
+      </div>
+      <div>
+        <div class="stat-num">CPHEEO</div>
+        <div class="stat-label">Standard</div>
+      </div>
+      <div>
+        <div class="stat-num">Excel</div>
+        <div class="stat-label">Design Tools</div>
+      </div>
+      <div>
+        <div class="stat-num">Free</div>
+        <div class="stat-label">to Start</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <div class="trust-item">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    CPHEEO Manual Reference
+  </div>
+  <div class="trust-item">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    Real Case Studies — Patna
+  </div>
+  <div class="trust-item">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    Downloadable Excel Workbooks
+  </div>
+  <div class="trust-item">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    For Civil Engineers & Students
+  </div>
+</div>
+
+<!-- WHAT YOU LEARN -->
+<section id="learn">
+  <div class="section-label reveal">Curriculum Overview</div>
+  <div class="section-title reveal">What You Will<br>Master</div>
+  <p class="section-sub reveal">A structured 21-lecture journey through every aspect of sewer network design — from flow fundamentals to complete system output.</p>
+
+  <div class="learn-grid reveal">
+    <div class="learn-card">
+      <div class="card-num">01</div>
+      <div class="card-title">Sewerage Fundamentals</div>
+      <div class="card-desc">Types of sewerage systems, CPHEEO guidelines, design philosophy, and Indian urban drainage context.</div>
+    </div>
+    <div class="learn-card">
+      <div class="card-num">02</div>
+      <div class="card-title">Population Forecasting</div>
+      <div class="card-desc">Arithmetic, geometric, and incremental increase methods. Forecasting design populations for 30-year planning horizons.</div>
+    </div>
+    <div class="learn-card">
+      <div class="card-num">03</div>
+      <div class="card-title">Wastewater Flow Estimation</div>
+      <div class="card-desc">Per capita generation, peak factor, infiltration allowance, and calculating design discharge for each reach.</div>
+    </div>
+    <div class="learn-card">
+      <div class="card-num">04</div>
+      <div class="card-title">Hydraulic Design (Manning's)</div>
+      <div class="card-desc">Manning's equation applied to circular sewers, partial flow diagrams, velocity and depth of flow checks.</div>
+    </div>
+    <div class="learn-card">
+      <div class="card-num">05</div>
+      <div class="card-title">Sewer Sizing & Slopes</div>
+      <div class="card-desc">Minimum and maximum velocities, self-cleansing criteria, pipe diameter selection, and slope determination.</div>
+    </div>
+    <div class="learn-card">
+      <div class="card-num">06</div>
+      <div class="card-title">Network Layout & Excel Tool</div>
+      <div class="card-desc">Full sewer network design using a structured Excel workbook with 1,000+ live formulas — ready for real projects.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" class="pricing-section">
+  <div class="section-label reveal">Pricing</div>
+  <div class="section-title reveal">Start Free.<br>Go Deeper.</div>
+  <p class="section-sub reveal">Access foundational lectures at no cost. Upgrade to unlock the full course, Excel tools, and priority support.</p>
+
+  <div class="pricing-grid reveal">
+    <div class="price-card">
+      <div class="price-tier">Free Access</div>
+      <div class="price-amount">₹0</div>
+      <div class="price-note">No credit card required</div>
+      <ul class="price-features">
+        <li>First 5 lectures (fundamentals)</li>
+        <li>PDF lecture notes (intro modules)</li>
+        <li>YouTube video access</li>
+        <li class="dim">Full 21-lecture course</li>
+        <li class="dim">Excel design workbook</li>
+        <li class="dim">Case study files — Patna</li>
+        <li class="dim">Priority Q&amp;A support</li>
+      </ul>
+      <a href="#" class="btn-secondary" style="width:100%;text-align:center;display:block;">Start Free →</a>
+    </div>
+
+    <div class="price-card featured">
+      <div class="featured-tag">Best Value</div>
+      <div class="price-tier">Full Course</div>
+      <div class="price-amount">₹999</div>
+      <div class="price-note">One-time payment · Lifetime access</div>
+      <ul class="price-features">
+        <li>All 21 lectures — complete course</li>
+        <li>Full PDF notes & references</li>
+        <li>YouTube video access</li>
+        <li>Excel network design workbook</li>
+        <li>Case study files — Patna</li>
+        <li>Priority Q&amp;A support</li>
+        <li>Future updates included</li>
+      </ul>
+      <a href="#" class="btn-primary" style="width:100%;text-align:center;display:block;">Enroll Now →</a>
+    </div>
+  </div>
+
+  <!-- FREE DOWNLOAD BAR -->
+  <div class="download-bar reveal">
+    <div class="dl-text">
+      <h3>📥 Free Resource — Sewer Design Checklist</h3>
+      <p>Download our CPHEEO-aligned sewer network design checklist — a quick-reference guide used by practising engineers. No sign-up needed.</p>
+    </div>
+    <a href="#" class="btn-gold">Download Free PDF</a>
+  </div>
+</section>
+
+<!-- YOUTUBE -->
+<section id="youtube" class="yt-section">
+  <div class="section-label reveal">YouTube</div>
+  <div class="section-title reveal">Watch Before You Enroll</div>
+  <p class="section-sub reveal" style="margin: 0 auto;">Preview lectures, deep-dive tutorials, and water engineering explainers — all on our YouTube channel.</p>
+  <div style="display:flex; justify-content:center;">
+    <a href="https://www.youtube.com/@YourChannelHandle" target="_blank" class="yt-card reveal">
+      <div class="yt-icon">
+        <svg viewBox="0 0 24 24"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 00.5 6.19 31.6 31.6 0 000 12a31.6 31.6 0 00.5 5.81 3.02 3.02 0 002.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 002.12-2.14A31.6 31.6 0 0024 12a31.6 31.6 0 00-.5-5.81zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/></svg>
+      </div>
+      <div class="yt-text">
+        <strong>Subscribe on YouTube</strong>
+        <span>Free lectures · Hydrology · Drainage · GIS Engineering</span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="contact-section">
+  <div class="section-label reveal">Get In Touch</div>
+  <div class="section-title reveal">Have Questions?<br>Let's Talk.</div>
+  <div class="contact-grid">
+    <div class="contact-info reveal">
+      <p>Whether you're a student deciding if this course is right for you, a practising engineer looking for the Excel tool, or an institution wanting a batch licence — reach out and I'll respond personally.</p>
+      <div class="contact-links">
+        <a href="mailto:your@email.com" class="contact-link">
+          <div class="contact-link-icon">✉</div>
+          your@email.com
+        </a>
+        <a href="https://youtube.com/@YourChannelHandle" class="contact-link" target="_blank">
+          <div class="contact-link-icon">▶</div>
+          YouTube Channel
+        </a>
+        <a href="#" class="contact-link">
+          <div class="contact-link-icon">in</div>
+          LinkedIn Profile
+        </a>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="contact-form">
+        <input type="text" placeholder="Your Name">
+        <input type="email" placeholder="Email Address">
+        <textarea placeholder="Your message or question…"></textarea>
+        <a href="#" class="btn-primary" style="text-align:center;">Send Message →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">SEWERNET</div>
+  <div class="footer-copy">© 2025 · Design of Sewer Networks Course · All rights reserved</div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(el => {
+      if (el.isIntersecting) {
+        el.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
